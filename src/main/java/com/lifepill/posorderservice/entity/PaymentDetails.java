@@ -1,9 +1,7 @@
 package com.lifepill.posorderservice.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Date;
 
@@ -14,8 +12,10 @@ import java.util.Date;
 @Table(name = "payment_details")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class PaymentDetails {
+@Getter
+@Setter
+@ToString
+public class PaymentDetails extends BaseEntity{
 
     @Id
     @Column(name = "payment_id")

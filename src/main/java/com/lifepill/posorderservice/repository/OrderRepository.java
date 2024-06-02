@@ -16,35 +16,5 @@ import java.util.List;
 @Repository
 @EnableJpaRepositories
 public interface OrderRepository extends JpaRepository<Order,Long> {
-    /**
-     * Find by branch id list.
-     *
-     * @param branchId the branch id
-     * @return the list
-     */
-    List<Order> findByBranchId(Long branchId);
 
-    /**
-     * Find by order date between list.
-     *
-     * @param truncate the truncate
-     * @param date     Order date
-     * @return the list
-     */
-    List<Order> findByOrderDateBetween(Date truncate, Date date);
-
-    /**
-     * Retrieves the total sales by summing up the total attribute of all orders.
-     *
-     * @return Total sales amount.
-     */
-    /**
-     * Retrieves the total sales by summing up the total attribute of all orders.
-     *
-     * @return Total sales amount.
-     */
-    @Query("SELECT SUM(o.total) FROM Order o")
-    Double getTotalSales();
-
-    List<Order> findAllByBranchId(long branchId);
 }

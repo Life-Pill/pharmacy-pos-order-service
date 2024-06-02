@@ -19,7 +19,7 @@ import java.util.Set;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class Order {
+public class Order extends BaseEntity {
     @Id
     @Column(name = "order_id", length = 45)
     @GeneratedValue(strategy = GenerationType.AUTO)

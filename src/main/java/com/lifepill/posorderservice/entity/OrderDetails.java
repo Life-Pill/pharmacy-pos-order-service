@@ -2,9 +2,7 @@ package com.lifepill.posorderservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonTypeId;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * The type Order details.
@@ -13,8 +11,10 @@ import lombok.NoArgsConstructor;
 @Table(name = "order_details")
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class OrderDetails {
+@Getter
+@Setter
+@ToString
+public class OrderDetails extends BaseEntity{
     @Id
     @Column(name = "order_details_id",length = 45)
     @GeneratedValue(strategy = GenerationType.AUTO)
