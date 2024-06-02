@@ -1,6 +1,6 @@
 package com.lifepill.posorderservice.service.Impl;
 
-import com.lifepill.posorderservice.dto.OrderResponseDTO;
+import com.lifepill.posorderservice.dto.ItemQuantityDTO;
 import com.lifepill.posorderservice.dto.RequestOrderDetailsSaveDTO;
 import com.lifepill.posorderservice.dto.RequestOrderSaveDTO;
 import com.lifepill.posorderservice.dto.RequestPaymentDetailsDTO;
@@ -26,6 +26,7 @@ import org.modelmapper.TypeToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,7 +58,14 @@ public class OrderServiceIMPL implements OrderService {
     @Override
     public String addOrder(RequestOrderSaveDTO requestOrderSaveDTO) {
         // check if the employer exists
-        checkEmployerExists(requestOrderSaveDTO.getEmployerId());
+        ResponseEntity<StandardResponse> responseEntityForEmployee =
+                apiClientEmployeeService.checkEmployerExistsById(requestOrderSaveDTO.getEmployerId());
+
+        boolean employerExists = (boolean) Objects.requireNonNull(responseEntityForEmployee.getBody()).getData();
+
+        if(!employerExists){
+            throw new NotFoundException("Employer not found with ID: " + requestOrderSaveDTO.getEmployerId());
+        }
 
         // check if the branch exists
         checkBranchExists((int) requestOrderSaveDTO.getBranchId());
@@ -65,11 +73,11 @@ public class OrderServiceIMPL implements OrderService {
         // Check if items in the order have sufficient quantity
         checkItemStock(requestOrderSaveDTO);
 
-      /*  // Update item quantities
+        // Update item quantities
         updateItemQuantities(requestOrderSaveDTO);
 
         Order order = new Order();
-        order.setEmployer(employerRepository.getById(requestOrderSaveDTO.getEmployerId()));
+       // order.setEmployer(employerRepository.getById(requestOrderSaveDTO.getEmployerId()));
         order.setOrderDate(requestOrderSaveDTO.getOrderDate());
         order.setTotal(requestOrderSaveDTO.getTotal());
         order.setBranchId(requestOrderSaveDTO.getBranchId());
@@ -81,20 +89,16 @@ public class OrderServiceIMPL implements OrderService {
                             }
                                     .getType()
                     );
-            for (int i = 0; i < orderDetails.size(); i++) {
-                orderDetails.get(i).setOrders(order);
-                orderDetails.get(i).setItems(itemRepository
-                        .getById(requestOrderSaveDTO
-                                .getOrderDetails().get(i).getId()
-                        )
-                );
+            for (OrderDetails orderDetail : orderDetails) {
+                orderDetail.setOrders(order);
             }
             if (!orderDetails.isEmpty()) {
                 orderDetailsRepo.saveAll(orderDetails);
             }
             savePaymentDetails(requestOrderSaveDTO.getPaymentDetails(), order);
             return "saved";
-        }*/
+        }
+
         return "Order saved successfully";
     }
 
@@ -109,6 +113,7 @@ public class OrderServiceIMPL implements OrderService {
         List<RequestOrderDetailsSaveDTO> orderDetails = requestOrderSaveDTO.getOrderDetails();
 
         for (RequestOrderDetailsSaveDTO orderDetail : orderDetails) {
+            System.out.println(  orderDetail.getId() +" Order Details"+ orderDetail.getAmount());
             ResponseEntity<StandardResponse> responseEntityForItem =
                     apiClientInventoryService.checkItemExistsAndQuantityAvailable(
                             orderDetail.getId(), orderDetail.getAmount()
@@ -140,10 +145,9 @@ public class OrderServiceIMPL implements OrderService {
      * Checks if an employer exists by their ID.
      *
      * @param employerId The ID of the employer to check.
-     * @return true if the employer exists, false otherwise.
      * @throws NotFoundException if the employer is not found.
      */
-    private boolean checkEmployerExists(long employerId) {
+    private void checkEmployerExists(long employerId) {
         ResponseEntity<StandardResponse> responseEntityForEmployee =
                 apiClientEmployeeService.checkEmployerExistsById(employerId);
 
@@ -153,17 +157,15 @@ public class OrderServiceIMPL implements OrderService {
             throw new NotFoundException("Employer not found with ID: " + employerId);
         }
 
-        return employerExists;
     }
 
     /**
      * Checks if a branch exists by its ID.
      *
      * @param branchId The ID of the branch to check.
-     * @return true if the branch exists, false otherwise.
      * @throws NotFoundException if the branch is not found.
      */
-    private boolean checkBranchExists(int branchId) {
+    private void checkBranchExists(int branchId) {
         ResponseEntity<StandardResponse> responseEntityForBranch =
                 apiClientBranchService.checkBranchExistsById(branchId);
 
@@ -173,6 +175,43 @@ public class OrderServiceIMPL implements OrderService {
             throw new NotFoundException("Branch not found with ID: " + branchId);
         }
 
-        return branchExists;
+    }
+
+    /**
+     * Updates the quantities of items in the database after an order is placed.
+     *
+     * @param requestOrderSaveDTO The DTO containing the order details.
+     * @throws NotFoundException if an item in the order is not found in the database.
+     */
+    private void updateItemQuantities(RequestOrderSaveDTO requestOrderSaveDTO) {
+    List<RequestOrderDetailsSaveDTO> orderDetails = requestOrderSaveDTO.getOrderDetails();
+        List<ItemQuantityDTO> itemsQuantityList = new ArrayList<>();
+
+        for (RequestOrderDetailsSaveDTO orderDetail : orderDetails) {
+            ItemQuantityDTO itemQuantityDTO = new ItemQuantityDTO();
+            itemQuantityDTO.setItemId(orderDetail.getId());
+            itemQuantityDTO.setItemQuantity(orderDetail.getAmount());
+            itemsQuantityList.add(itemQuantityDTO);
+        }
+       apiClientInventoryService.updateItemQuantities(itemsQuantityList);
+
+    }
+
+    /**
+     * Saves payment details for an order.
+     *
+     * @param paymentDetailsDTO The DTO containing payment details.
+     * @param order             The order for which the payment is made.
+     */
+    private void savePaymentDetails(RequestPaymentDetailsDTO paymentDetailsDTO, Order order) {
+        PaymentDetails paymentDetails = new PaymentDetails();
+        paymentDetails.setPaymentMethod(paymentDetailsDTO.getPaymentMethod());
+        paymentDetails.setPaymentAmount(paymentDetailsDTO.getPaymentAmount());
+        paymentDetails.setPaymentDate(paymentDetailsDTO.getPaymentDate());
+        paymentDetails.setPaymentNotes(paymentDetailsDTO.getPaymentNotes());
+        paymentDetails.setPaymentDiscount(paymentDetailsDTO.getPaymentDiscount());
+        paymentDetails.setPaidAmount(paymentDetailsDTO.getPayedAmount());
+        paymentDetails.setOrders(order);
+        paymentRepository.save(paymentDetails);
     }
 }

@@ -29,10 +29,14 @@ public class OrderController {
      */
     @PostMapping(path = "/save")
     public ResponseEntity<StandardResponse> saveItem(@RequestBody RequestOrderSaveDTO requestOrderSaveDTO) {
-        String id =  orderService.addOrder(requestOrderSaveDTO);
+        String orderId =  orderService.addOrder(requestOrderSaveDTO);
 
         return new ResponseEntity<>(
-                new StandardResponse(201, id +"Item Savd Successfully",id),
+                new StandardResponse(
+                        201,
+                        orderId +"Item Saved Successfully",
+                        orderId
+                ),
                 HttpStatus.CREATED);
     }
 

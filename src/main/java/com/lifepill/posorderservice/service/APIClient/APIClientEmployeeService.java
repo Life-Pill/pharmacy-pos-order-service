@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "EMPLOYEE-SERVICE/lifepill/v1")
 public interface APIClientEmployeeService {
 
-    @GetMapping("/check-employer-exists-by-id/{employerId}")
+    @GetMapping("employers/check-employer-exists-by-id/{employerId}")
     ResponseEntity<StandardResponse> checkEmployerExistsById(
             @PathVariable long employerId
     );
