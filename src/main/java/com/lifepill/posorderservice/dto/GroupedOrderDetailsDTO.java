@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class GroupedOrderDetails {
+public class GroupedOrderDetailsDTO {
     private List<RequestOrderDetailsSaveDTO> orderDetails;
     private RequestPaymentDetailsDTO paymentDetails;
     private int orderCount;

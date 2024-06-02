@@ -64,9 +64,9 @@ public class OrderServiceIMPL implements OrderService {
         updateItemQuantities(requestOrderSaveDTO);
 
         Order order = new Order();
-       // order.setEmployer(employerRepository.getById(requestOrderSaveDTO.getEmployerId()));
+        order.setEmployerId(requestOrderSaveDTO.getEmployerId());
         order.setOrderDate(requestOrderSaveDTO.getOrderDate());
-        order.setTotal(requestOrderSaveDTO.getTotal());
+        order.setTotalAmount(requestOrderSaveDTO.getTotalAmount());
         order.setBranchId(requestOrderSaveDTO.getBranchId());
         orderRepository.save(order);
 
@@ -100,21 +100,21 @@ public class OrderServiceIMPL implements OrderService {
         List<RequestOrderDetailsSaveDTO> orderDetails = requestOrderSaveDTO.getOrderDetails();
 
         for (RequestOrderDetailsSaveDTO orderDetail : orderDetails) {
-            System.out.println(  orderDetail.getId() +" Order Details"+ orderDetail.getAmount());
+
             ResponseEntity<StandardResponse> responseEntityForItem =
                     apiClientInventoryService.checkItemExistsAndQuantityAvailable(
-                            orderDetail.getId(), orderDetail.getAmount()
+                            orderDetail.getItemId(), orderDetail.getItemQuantity()
                     );
 
             boolean itemExists = (boolean) Objects.requireNonNull(responseEntityForItem.getBody()).getData();
 
             if (!itemExists) {
-                throw new NotFoundException("Item not found with ID: " + orderDetail.getId());
+                throw new NotFoundException("Item not found with ID: " + orderDetail.getItemId());
             }
 
             ResponseEntity<StandardResponse> responseEntityForItemStock =
                     apiClientInventoryService.checkItemExistsAndQuantityAvailable(
-                            orderDetail.getId(), orderDetail.getAmount()
+                            orderDetail.getItemId(), orderDetail.getItemQuantity()
                     );
 
             boolean itemStockAvailable =
@@ -122,7 +122,7 @@ public class OrderServiceIMPL implements OrderService {
 
             if (!itemStockAvailable) {
                 throw new InsufficientItemQuantityException(
-                        "Insufficient quantity for item with ID: " + orderDetail.getId()
+                        "Insufficient quantity for item with ID: " + orderDetail.getItemId()
                 );
             }
         }
@@ -176,8 +176,8 @@ public class OrderServiceIMPL implements OrderService {
 
         for (RequestOrderDetailsSaveDTO orderDetail : orderDetails) {
             ItemQuantityDTO itemQuantityDTO = new ItemQuantityDTO();
-            itemQuantityDTO.setItemId(orderDetail.getId());
-            itemQuantityDTO.setItemQuantity(orderDetail.getAmount());
+            itemQuantityDTO.setItemId(orderDetail.getItemId());
+            itemQuantityDTO.setItemQuantity(orderDetail.getItemQuantity());
             itemsQuantityList.add(itemQuantityDTO);
         }
        apiClientInventoryService.updateItemQuantities(itemsQuantityList);
@@ -201,6 +201,27 @@ public class OrderServiceIMPL implements OrderService {
 
     @Override
     public List<OrderResponseDTO> getAllOrdersWithDetails() {
-       return null;
+        List<Order> orders = orderRepository.findAll();
+        List<OrderResponseDTO> orderResponseDTOList = new ArrayList<>();
+
+        for (Order order : orders) {
+            OrderResponseDTO orderResponseDTO = modelMapper.map(order, OrderResponseDTO.class);
+            GroupedOrderDetailsDTO groupedOrderDetailsDTO = new GroupedOrderDetailsDTO();
+                groupedOrderDetailsDTO.setOrderDetails(modelMapper.map(
+                        order.getOrderDetails(),
+                        new TypeToken<List<RequestOrderDetailsSaveDTO>>() {}
+                                .getType()
+                        )
+                );
+            // Fetch the payment details from the database by order ID
+            PaymentDetails paymentDetails = paymentRepository.findByOrders(order);
+            RequestPaymentDetailsDTO requestPaymentDetailsDTO = modelMapper.map(paymentDetails, RequestPaymentDetailsDTO.class);
+            groupedOrderDetailsDTO.setPaymentDetails(requestPaymentDetailsDTO);
+            groupedOrderDetailsDTO.setOrderCount(order.getOrderDetails().size());
+            orderResponseDTO.setGroupedOrderDetails(groupedOrderDetailsDTO);
+
+            orderResponseDTOList.add(orderResponseDTO);
+        }
+        return orderResponseDTOList;
     }
 }

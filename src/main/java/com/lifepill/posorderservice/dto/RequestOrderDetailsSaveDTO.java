@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class RequestOrderDetailsSaveDTO {
-    private String name; // TODO: Change name to itemName
-    private Double amount; // TODO: Change amount to itemAmount
-    private long id; // TODO: Change id to itemId
+    private String itemName;
+    private Double itemQuantity;
+    private long itemId;
 
 }

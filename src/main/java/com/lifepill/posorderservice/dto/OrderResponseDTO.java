@@ -10,9 +10,10 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponseDTO {
+    private long orderId;
     private long employerId;
     private long branchId;
     private Date orderDate;
-    private Double total;
-    private GroupedOrderDetails groupedOrderDetails;
+    private double totalAmount;
+    private GroupedOrderDetailsDTO groupedOrderDetails;
 }

@@ -24,10 +24,9 @@ public class Order extends BaseEntity {
     @Column(name = "order_id", length = 45)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long orderId;
-/*
-    @ManyToOne
-    @JoinColumn(name = "employer_id",nullable = false)
-    private Employer employer;*/
+
+    @Column(name = "employer_id",nullable = false)
+    private long employerId;
 
     @Column(name = "branch_id",nullable = false)
     private long branchId;
@@ -35,26 +34,13 @@ public class Order extends BaseEntity {
     @Column(name = "order_date", columnDefinition = "TIMESTAMP")
     private Date orderDate;
 
-    @Column(name = "total",nullable = false)
-    private Double total;
+    @Column(name = "total_amount",nullable = false)
+    private Double totalAmount;
 
     @OneToMany(mappedBy = "orders")
     private Set<OrderDetails> orderDetails;
 
     @OneToMany(mappedBy = "orders")
     private Set<PaymentDetails> paymentDetails;
-
- /*   *//**
-     * Instantiates a new Order.
-     *
-     * @param employers the employers
-     * @param orderDate the order date
-     * @param total     the total
-     *//*
-    public Order(Employer employers, Date orderDate, Double total) {
-        this.employer = employers;
-        this.orderDate = orderDate;
-        this.total = total;
-    }*/
 
 }

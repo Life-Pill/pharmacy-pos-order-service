@@ -20,18 +20,18 @@ public class OrderDetails extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int orderDetailsId;
 
-    @Column(name = "name",length = 100,nullable = false)
-    private String name;
+    @Column(name = "item_name",length = 100,nullable = false)
+    private String itemName;
 
-    @Column(name = "amount",length = 100,nullable = false)
-    private Double amount;
+    @Column(name = "item_quantity",length = 100,nullable = false)
+    private Double itemQuantity;
+
+    @Column(name = "item_id",nullable = false)
+    private long itemId;
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
     private Order orders;
 
-/*    @ManyToOne
-    @JoinColumn(name = "item_id",nullable = false)
-    private Item items;*/
 
 }
