@@ -110,4 +110,35 @@ public class OrderServiceIMPL implements OrderService {
         }
         return orderResponseDTOList;
     }
+
+    /**
+     * Fetches an order with its details from the database by its ID.
+     *
+     * @param orderId The ID of the order to fetch.
+     * @return An OrderResponseDTO object representing the order with its details, or null if no order with the given ID exists.
+     */
+    @Override
+    public OrderResponseDTO getOrderWithDetailsById(long orderId) {
+        Optional<Order> order = orderRepository.findById(orderId);
+        if (order.isPresent()) {
+            OrderResponseDTO orderResponseDTO = modelMapper.map(order.get(), OrderResponseDTO.class);
+            GroupedOrderDetailsDTO groupedOrderDetailsDTO = new GroupedOrderDetailsDTO();
+            groupedOrderDetailsDTO.setOrderDetails(modelMapper.map(
+                    order.get().getOrderDetails(),
+                    new TypeToken<List<RequestOrderDetailsSaveDTO>>() {}
+                            .getType()
+                    )
+            );
+            // Fetch the payment details from the database by order ID
+            PaymentDetails paymentDetails = paymentRepository.findByOrders(order.get());
+            RequestPaymentDetailsDTO requestPaymentDetailsDTO = modelMapper.map(paymentDetails, RequestPaymentDetailsDTO.class);
+            groupedOrderDetailsDTO.setPaymentDetails(requestPaymentDetailsDTO);
+
+            groupedOrderDetailsDTO.setOrderCount(order.get().getOrderDetails().size());
+            orderResponseDTO.setGroupedOrderDetails(groupedOrderDetailsDTO);
+
+            return orderResponseDTO;
+        }
+        return null;
+    }
 }
