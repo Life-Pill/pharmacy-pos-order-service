@@ -1,6 +1,5 @@
 package com.lifepill.posorderservice.repository;
 
-import com.lifepill.posorderservice.entity.Order;
 import com.lifepill.posorderservice.entity.OrderDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;

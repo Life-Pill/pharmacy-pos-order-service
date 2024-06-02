@@ -3,12 +3,9 @@ package com.lifepill.posorderservice.repository;
 
 import com.lifepill.posorderservice.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
-import java.util.List;
 
 /**
  * The interface Order repository.
