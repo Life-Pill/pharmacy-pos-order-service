@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface OrderService {
 
+    String addOrder(RequestOrderSaveDTO requestOrderSaveDTO);
 }
