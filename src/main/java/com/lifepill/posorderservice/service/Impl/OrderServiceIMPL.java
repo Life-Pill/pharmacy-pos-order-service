@@ -7,20 +7,27 @@ import com.lifepill.posorderservice.dto.RequestPaymentDetailsDTO;
 import com.lifepill.posorderservice.entity.Order;
 import com.lifepill.posorderservice.entity.OrderDetails;
 import com.lifepill.posorderservice.entity.PaymentDetails;
+import com.lifepill.posorderservice.exception.InsufficientItemQuantityException;
 import com.lifepill.posorderservice.exception.NotFoundException;
 import com.lifepill.posorderservice.repository.OrderDetailsRepository;
 import com.lifepill.posorderservice.repository.OrderRepository;
 import com.lifepill.posorderservice.repository.PaymentRepository;
+import com.lifepill.posorderservice.service.APIClient.APIClientBranchService;
+import com.lifepill.posorderservice.service.APIClient.APIClientEmployeeService;
+import com.lifepill.posorderservice.service.APIClient.APIClientInventoryService;
 import com.lifepill.posorderservice.service.OrderService;
 
+import com.lifepill.posorderservice.util.StandardResponse;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -37,6 +44,9 @@ public class OrderServiceIMPL implements OrderService {
     private OrderDetailsRepository orderDetailsRepo;
     private OrderDetailsRepository orderDetailsRepository;
     private PaymentRepository paymentRepository;
+    private APIClientEmployeeService apiClientEmployeeService;
+    private APIClientBranchService apiClientBranchService;
+    private APIClientInventoryService apiClientInventoryService;
 
     /**
      * Adds an order to the system.
@@ -46,6 +56,12 @@ public class OrderServiceIMPL implements OrderService {
      */
     @Override
     public String addOrder(RequestOrderSaveDTO requestOrderSaveDTO) {
+        // check if the employer exists
+        checkEmployerExists(requestOrderSaveDTO.getEmployerId());
+
+        // check if the branch exists
+        checkBranchExists((int) requestOrderSaveDTO.getBranchId());
+
         // Check if items in the order have sufficient quantity
         checkItemStock(requestOrderSaveDTO);
 
@@ -90,19 +106,73 @@ public class OrderServiceIMPL implements OrderService {
      * @throws NotFoundException                 if an item in the order is not found in the database.
      */
     private void checkItemStock(RequestOrderSaveDTO requestOrderSaveDTO) {
-//        for (RequestOrderDetailsSaveDTO orderDetail : requestOrderSaveDTO.getOrderDetails()) {
-//            Optional<Item> optionalItem = itemRepository.findById(orderDetail.getId());
-//            if (optionalItem.isPresent()) {
-//                Item item = optionalItem.get();
-//                if (item.getItemQuantity() < orderDetail.getAmount()) {
-//                    throw new InsufficientItemQuantityException(
-//                            "Item " + item.getItemId()
-//                                    + " does not have enough quantity"
-//                    );
-//                }
-//            } else {
-//                throw new NotFoundException("Item not found with ID: " + orderDetail.getId());
-//            }
-//        }
+        List<RequestOrderDetailsSaveDTO> orderDetails = requestOrderSaveDTO.getOrderDetails();
+
+        for (RequestOrderDetailsSaveDTO orderDetail : orderDetails) {
+            ResponseEntity<StandardResponse> responseEntityForItem =
+                    apiClientInventoryService.checkItemExistsAndQuantityAvailable(
+                            orderDetail.getId(), orderDetail.getAmount()
+                    );
+
+            boolean itemExists = (boolean) Objects.requireNonNull(responseEntityForItem.getBody()).getData();
+
+            if (!itemExists) {
+                throw new NotFoundException("Item not found with ID: " + orderDetail.getId());
+            }
+
+            ResponseEntity<StandardResponse> responseEntityForItemStock =
+                    apiClientInventoryService.checkItemExistsAndQuantityAvailable(
+                            orderDetail.getId(), orderDetail.getAmount()
+                    );
+
+            boolean itemStockAvailable =
+                    (boolean) Objects.requireNonNull(responseEntityForItemStock.getBody()).getData();
+
+            if (!itemStockAvailable) {
+                throw new InsufficientItemQuantityException(
+                        "Insufficient quantity for item with ID: " + orderDetail.getId()
+                );
+            }
+        }
+    }
+
+    /**
+     * Checks if an employer exists by their ID.
+     *
+     * @param employerId The ID of the employer to check.
+     * @return true if the employer exists, false otherwise.
+     * @throws NotFoundException if the employer is not found.
+     */
+    private boolean checkEmployerExists(long employerId) {
+        ResponseEntity<StandardResponse> responseEntityForEmployee =
+                apiClientEmployeeService.checkEmployerExistsById(employerId);
+
+        boolean employerExists = (boolean) Objects.requireNonNull(responseEntityForEmployee.getBody()).getData();
+
+        if(!employerExists){
+            throw new NotFoundException("Employer not found with ID: " + employerId);
+        }
+
+        return employerExists;
+    }
+
+    /**
+     * Checks if a branch exists by its ID.
+     *
+     * @param branchId The ID of the branch to check.
+     * @return true if the branch exists, false otherwise.
+     * @throws NotFoundException if the branch is not found.
+     */
+    private boolean checkBranchExists(int branchId) {
+        ResponseEntity<StandardResponse> responseEntityForBranch =
+                apiClientBranchService.checkBranchExistsById(branchId);
+
+        boolean branchExists = (boolean) Objects.requireNonNull(responseEntityForBranch.getBody()).getData();
+
+        if (!branchExists) {
+            throw new NotFoundException("Branch not found with ID: " + branchId);
+        }
+
+        return branchExists;
     }
 }
