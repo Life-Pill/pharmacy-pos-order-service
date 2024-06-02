@@ -1,9 +1,6 @@
 package com.lifepill.posorderservice.service.Impl;
 
-import com.lifepill.posorderservice.dto.ItemQuantityDTO;
-import com.lifepill.posorderservice.dto.RequestOrderDetailsSaveDTO;
-import com.lifepill.posorderservice.dto.RequestOrderSaveDTO;
-import com.lifepill.posorderservice.dto.RequestPaymentDetailsDTO;
+import com.lifepill.posorderservice.dto.*;
 import com.lifepill.posorderservice.entity.Order;
 import com.lifepill.posorderservice.entity.OrderDetails;
 import com.lifepill.posorderservice.entity.PaymentDetails;
@@ -26,10 +23,7 @@ import org.modelmapper.TypeToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 
 /**
@@ -58,14 +52,7 @@ public class OrderServiceIMPL implements OrderService {
     @Override
     public String addOrder(RequestOrderSaveDTO requestOrderSaveDTO) {
         // check if the employer exists
-        ResponseEntity<StandardResponse> responseEntityForEmployee =
-                apiClientEmployeeService.checkEmployerExistsById(requestOrderSaveDTO.getEmployerId());
-
-        boolean employerExists = (boolean) Objects.requireNonNull(responseEntityForEmployee.getBody()).getData();
-
-        if(!employerExists){
-            throw new NotFoundException("Employer not found with ID: " + requestOrderSaveDTO.getEmployerId());
-        }
+        checkEmployerExists(requestOrderSaveDTO.getEmployerId());
 
         // check if the branch exists
         checkBranchExists((int) requestOrderSaveDTO.getBranchId());
@@ -204,14 +191,16 @@ public class OrderServiceIMPL implements OrderService {
      * @param order             The order for which the payment is made.
      */
     private void savePaymentDetails(RequestPaymentDetailsDTO paymentDetailsDTO, Order order) {
-        PaymentDetails paymentDetails = new PaymentDetails();
-        paymentDetails.setPaymentMethod(paymentDetailsDTO.getPaymentMethod());
-        paymentDetails.setPaymentAmount(paymentDetailsDTO.getPaymentAmount());
-        paymentDetails.setPaymentDate(paymentDetailsDTO.getPaymentDate());
-        paymentDetails.setPaymentNotes(paymentDetailsDTO.getPaymentNotes());
-        paymentDetails.setPaymentDiscount(paymentDetailsDTO.getPaymentDiscount());
-        paymentDetails.setPaidAmount(paymentDetailsDTO.getPayedAmount());
+
+        PaymentDetails paymentDetails = modelMapper.map(paymentDetailsDTO, PaymentDetails.class);
         paymentDetails.setOrders(order);
+
         paymentRepository.save(paymentDetails);
+    }
+
+
+    @Override
+    public List<OrderResponseDTO> getAllOrdersWithDetails() {
+       return null;
     }
 }
