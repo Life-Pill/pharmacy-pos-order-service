@@ -1,6 +1,7 @@
 package com.lifepill.posorderservice.controller;
 
 import com.lifepill.posorderservice.dto.OrderResponseDTO;
+import com.lifepill.posorderservice.dto.RequestOrderDetailsSaveDTO;
 import com.lifepill.posorderservice.dto.RequestOrderSaveDTO;
 import com.lifepill.posorderservice.service.OrderService;
 import com.lifepill.posorderservice.util.StandardResponse;
@@ -72,6 +73,25 @@ public class OrderController {
         OrderResponseDTO orderResponseDTO = orderService.getOrderWithDetailsById(orderId);
         return new ResponseEntity<>(
                 new StandardResponse(200, "Order Retrieved Successfully", orderResponseDTO),
+                HttpStatus.OK);
+    }
+
+    /**
+     * Updates order details by id.
+     *
+     * @param orderId the order id
+     * @param requestOrderDetailsSaveDTOList the request order details save dto list
+     * @return the response entity
+     */
+    //TODO: when updating inventory stock update and resolve and check if the stock is available not working properly
+    @PutMapping("/updateOrderDetails/{orderId}")
+    public ResponseEntity<StandardResponse> updateOrderDetailsById(
+            @PathVariable long orderId,
+            @RequestBody List<RequestOrderDetailsSaveDTO> requestOrderDetailsSaveDTOList
+    ) {
+        String message = orderService.updateOrderDetailsById(orderId, requestOrderDetailsSaveDTOList);
+        return new ResponseEntity<>(
+                new StandardResponse(200, message, requestOrderDetailsSaveDTOList),
                 HttpStatus.OK);
     }
 

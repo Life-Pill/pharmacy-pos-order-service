@@ -141,4 +141,28 @@ public class OrderServiceIMPL implements OrderService {
         }
         return null;
     }
+
+    @Override
+    public String updateOrderDetailsById(
+            long orderId,
+            List<RequestOrderDetailsSaveDTO> requestOrderDetailsSaveDTOList
+    ) {
+        Optional<Order> order = orderRepository.findById(orderId);
+        if (order.isPresent()) {
+            List<OrderDetails> orderDetails = modelMapper.map(
+                    requestOrderDetailsSaveDTOList,
+                    new TypeToken<List<OrderDetails>>() {}
+                            .getType()
+                    );
+            for (OrderDetails orderDetail : orderDetails) {
+                orderDetail.setOrders(order.get());
+            }
+            if (!orderDetails.isEmpty()) {
+                orderDetailsRepository.saveAll(orderDetails);
+            }
+            return "Order details updated successfully";
+        }
+        return "Order details not updated";
+    }
+
 }
