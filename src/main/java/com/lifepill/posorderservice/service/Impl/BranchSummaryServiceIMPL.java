@@ -37,6 +37,7 @@ public class BranchSummaryServiceIMPL implements BranchSummaryService {
      *
      * @return List of PharmacyBranchResponseDTO containing sales information for each branch.
      */
+    //TODO: Check sales response
     @Override
     public List<PharmacyBranchResponseDTO> getAllBranchesWithSales() {
 

@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class PharmacyBranchResponseDTO {
 
     private Double sales;
-    private Integer orders;
-    private String manager;
+    private Integer noOfOrders;
+    private String managerName;
     private BranchDTO branchDTO;
 }
