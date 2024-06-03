@@ -13,4 +13,9 @@ public interface APIClientEmployeeService {
     ResponseEntity<StandardResponse> checkEmployerExistsById(
             @PathVariable long employerId
     );
+
+    @GetMapping("branch-employer/manager/by-branch/{branchId}")
+    ResponseEntity<StandardResponse> getManagerByBranchId(
+            @PathVariable int branchId
+    );
 }

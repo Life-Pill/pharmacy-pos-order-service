@@ -100,7 +100,8 @@ public class OrderServiceIMPL implements OrderService {
                 );
             // Fetch the payment details from the database by order ID
             PaymentDetails paymentDetails = paymentRepository.findByOrders(order);
-            RequestPaymentDetailsDTO requestPaymentDetailsDTO = modelMapper.map(paymentDetails, RequestPaymentDetailsDTO.class);
+            RequestPaymentDetailsDTO requestPaymentDetailsDTO = modelMapper
+                    .map(paymentDetails, RequestPaymentDetailsDTO.class);
             groupedOrderDetailsDTO.setPaymentDetails(requestPaymentDetailsDTO);
 
             groupedOrderDetailsDTO.setOrderCount(order.getOrderDetails().size());
@@ -115,7 +116,8 @@ public class OrderServiceIMPL implements OrderService {
      * Fetches an order with its details from the database by its ID.
      *
      * @param orderId The ID of the order to fetch.
-     * @return An OrderResponseDTO object representing the order with its details, or null if no order with the given ID exists.
+     * @return An OrderResponseDTO object representing the order with its details,
+     * or null if no order with the given ID exists.
      */
     @Override
     public OrderResponseDTO getOrderWithDetailsById(long orderId) {
@@ -131,7 +133,8 @@ public class OrderServiceIMPL implements OrderService {
             );
             // Fetch the payment details from the database by order ID
             PaymentDetails paymentDetails = paymentRepository.findByOrders(order.get());
-            RequestPaymentDetailsDTO requestPaymentDetailsDTO = modelMapper.map(paymentDetails, RequestPaymentDetailsDTO.class);
+            RequestPaymentDetailsDTO requestPaymentDetailsDTO = modelMapper
+                    .map(paymentDetails, RequestPaymentDetailsDTO.class);
             groupedOrderDetailsDTO.setPaymentDetails(requestPaymentDetailsDTO);
 
             groupedOrderDetailsDTO.setOrderCount(order.get().getOrderDetails().size());
