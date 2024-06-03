@@ -3,7 +3,6 @@ package com.lifepill.posorderservice.service.Impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lifepill.posorderservice.dto.BranchDTO;
 import com.lifepill.posorderservice.dto.EmployerAllDetailsDTO;
-import com.lifepill.posorderservice.dto.EmployerDTO;
 import com.lifepill.posorderservice.dto.PharmacyBranchResponseDTO;
 import com.lifepill.posorderservice.entity.Order;
 import com.lifepill.posorderservice.repository.OrderRepository;
